@@ -20,11 +20,10 @@ export default function ImageDrawer() {
   };
 
   const takePicture = () => {
-    resetDrawing()
+    resetDrawing();
     if (!canvasRef.current || !videoRef.current) return;
     const context = canvasRef.current.getContext('2d');
     if (!context) return;
-    console.log('dddd', );
 
     context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
   };
@@ -32,30 +31,84 @@ export default function ImageDrawer() {
   const resetDrawing = () => {
     setPolygonPoints([]);
     setIsDrawing(false);
-  }
-
-
-
-  const handleCanvasMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    setIsDrawing(true);
-    addPoint(event);
   };
 
-  const handleCanvasMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
+  const resetCanvas = () => {
+    if (!canvasRef.current || !videoRef.current) return;
+    const context = canvasRef.current.getContext('2d');
+    if (!context) return;
+
+    // Clear the entire canvas
+    context.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+
+    // Redraw the video frame onto the canvas, effectively resetting it
+    context.drawImage(videoRef.current, 0, 0, canvasRef.current.width, canvasRef.current.height);
+
+    // Reset the polygon points
+    setPolygonPoints([]);
+  };
+
+  const handleStart = (x: number, y: number) => {
+    setIsDrawing(true);
+    addPoint(x, y);
+  };
+
+  const handleMove = (x: number, y: number) => {
     if (!isDrawing) return;
-    addPoint(event);
+    addPoint(x, y);
     drawLine();
   };
 
-  const handleCanvasMouseUp = () => {
+  const handleEnd = () => {
     setIsDrawing(false);
     closePolygonAndProcess();
   };
 
-  const addPoint = (event: React.MouseEvent<HTMLCanvasElement>) => {
-    const x = event.nativeEvent.offsetX;
-    const y = event.nativeEvent.offsetY;
+  const addPoint = (x: number, y: number) => {
     setPolygonPoints([...polygonPoints, { x, y }]);
+  };
+
+  const handleCanvasMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    const { offsetX, offsetY } = event.nativeEvent;
+    handleStart(offsetX, offsetY);
+  };
+
+  const handleCanvasMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    const { offsetX, offsetY } = event.nativeEvent;
+    handleMove(offsetX, offsetY);
+  };
+
+  const handleCanvasMouseUp = () => {
+    handleEnd();
+  };
+
+  const handleCanvasTouchStart = (event: React.TouchEvent<HTMLCanvasElement>) => {
+    event.preventDefault();
+    const touch = event.touches[0];
+    const { offsetX, offsetY } = getTouchPos(canvasRef.current, touch.clientX, touch.clientY);
+    handleStart(offsetX, offsetY);
+  };
+
+  const handleCanvasTouchMove = (event: React.TouchEvent<HTMLCanvasElement>) => {
+    event.preventDefault();
+    const touch = event.touches[0];
+    const { offsetX, offsetY } = getTouchPos(canvasRef.current, touch.clientX, touch.clientY);
+    handleMove(offsetX, offsetY);
+  };
+
+  const handleCanvasTouchEnd = () => {
+    handleEnd();
+  };
+
+  const getTouchPos = (canvasDom: HTMLCanvasElement | null, touchX: number, touchY: number) => {
+    if (!canvasDom) {
+      return { offsetX: 0, offsetY: 0 };
+    }
+    const rect = canvasDom.getBoundingClientRect();
+    return {
+      offsetX: touchX - rect.left,
+      offsetY: touchY - rect.top
+    };
   };
 
   const drawLine = () => {
@@ -105,7 +158,7 @@ export default function ImageDrawer() {
     if (!overlayCtx) return;
 
     // Set outside of the polygon to 50% opacity white
-  overlayCtx.fillStyle = 'rgba(0, 128, 0, 0.5)'; // Green with 50% opacity
+    overlayCtx.fillStyle = 'rgba(0, 128, 0, 0.5)'; // Green with 50% opacity
     overlayCtx.fillRect(0, 0, overlayCanvas.width, overlayCanvas.height);
     overlayCtx.globalCompositeOperation = 'destination-out';
     overlayCtx.fill(path);
@@ -118,19 +171,24 @@ export default function ImageDrawer() {
     setPolygonPoints([]);
   };
 
+
   return (
     <div>
       <video ref={videoRef} autoPlay></video>
-      <button onClick={startCamera}>Start Camera</button>
-      <button onClick={takePicture}>Take Picture</button>
+      <div className="flex flex-row gap-1">
+        <button onClick={startCamera}>Start Camera</button>
+        <button onClick={takePicture}>Take Picture</button>
+        <button onClick={resetCanvas}>Reset</button>
+      </div>
       <canvas
         ref={canvasRef}
-        width={640} // Set the desired width
-        height={480} // Set the desired height
+        width={300}
         onMouseDown={handleCanvasMouseDown}
         onMouseMove={handleCanvasMouseMove}
         onMouseUp={handleCanvasMouseUp}
-        // onMouseOut={handleCanvasMouseUp}
+        onTouchStart={handleCanvasTouchStart}
+        onTouchMove={handleCanvasTouchMove}
+        onTouchEnd={handleCanvasTouchEnd}
       ></canvas>
     </div>
   );
