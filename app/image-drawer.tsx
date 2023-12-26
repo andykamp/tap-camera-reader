@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef, useState } from 'react';
+import { download, extractTextFromCanvas } from './tesseract';
 
 type VideoDimensions = {
   width: number,
@@ -18,24 +19,28 @@ type Point = {
 };
 
 const constraints = {
-    video: {
-      facingMode: "environment" // Use the rear camera
-    }
-  };
+  video: {
+    facingMode: "environment" // Use the rear camera
+  }
+};
+
+const DRAWING_CANVAS_ID = 'drawing-canvas';
 
 export default function ImageDrawer() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawingCanvasRef = useRef<HTMLCanvasElement>(null);
 
+  const [videoDimensions, setVideoDimensions] = useState(DEFAULT_VIDEO_DIMENSIONS);
   const [polygonPoints, setPolygonPoints] = useState<Point[]>([]);
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
-  const [videoDimensions, setVideoDimensions] = useState(DEFAULT_VIDEO_DIMENSIONS);
   const [isClipped, setIsClipped] = useState(false);
+
+  const [text, setText] = useState<string>();
 
   const startCamera = async () => {
     if (!videoRef.current) return;
-    const stream = await navigator.mediaDevices.getUserMedia( constraints );
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
     videoRef.current.srcObject = stream;
   };
 
@@ -66,8 +71,6 @@ export default function ImageDrawer() {
     if (!canvasRef.current || !videoRef.current) return;
     const context = canvasRef.current.getContext('2d');
     if (!context) return;
-    console.log('videoref', videoRef.current);
-    console.log('getVideoDimensions', getVideoDimensions());
 
     setVideoDimensions(getVideoDimensions());
 
@@ -229,49 +232,10 @@ export default function ImageDrawer() {
     setIsClipped(true);
   };
 
-
-
-  // const closePolygonAndProcess = () => {
-  //   if (!canvasRef.current || !videoRef.current || !drawingCanvasRef.current) return;
-
-  //   const context = drawingCanvasRef.current.getContext('2d') as CanvasRenderingContext2D;
-
-  //   const path = new Path2D();
-  //   polygonPoints.forEach((point, index) => {
-  //     if (index === 0) {
-  //       path.moveTo(point.x, point.y);
-  //     } else {
-  //       path.lineTo(point.x, point.y);
-  //     }
-  //   });
-  //   path.closePath();
-
-  //   context.clip(path);
-
-  //   // Draw the image inside the polygon
-  //   context.drawImage(videoRef.current, 0, 0, drawingCanvasRef.current.width, drawingCanvasRef.current.height);
-
-  //   // Create a new canvas for the overlay
-  //   const overlayCanvas = document.createElement('canvas');
-  //   overlayCanvas.width = drawingCanvasRef.current.width;
-  //   overlayCanvas.height = drawingCanvasRef.current.height;
-  //   const overlayCtx = overlayCanvas.getContext('2d');
-  //   if (!overlayCtx) return;
-
-  //   // Set outside of the polygon to 50% opacity white
-  //   overlayCtx.fillStyle = 'rgba(0, 128, 0, 0.5)'; // Green with 50% opacity
-  //   overlayCtx.fillRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-  //   overlayCtx.globalCompositeOperation = 'destination-out';
-  //   overlayCtx.fill(path);
-
-  //   // Combine the two canvases
-  //   context.globalCompositeOperation = 'source-over';
-  //   context.drawImage(overlayCanvas, 0, 0);
-
-  //   // Reset the polygon points
-  //   setPolygonPoints([]);
-  // };
-
+  const imageToText = async () => {
+    const text = await extractTextFromCanvas(DRAWING_CANVAS_ID)
+     setText(text)
+  }
 
   return (
     <div>
@@ -279,7 +243,14 @@ export default function ImageDrawer() {
         <button onClick={startCamera}>Start Camera</button>
         <button onClick={takePicture}>Take Picture</button>
         <button onClick={resetCanvas}>Reset</button>
+        <button onClick={() => download(DRAWING_CANVAS_ID)}>download</button>
+        <button onClick={imageToText}>tess</button>
       </div>
+      {text &&
+        <pre className="p-4 bg-red-600">
+          {text}
+        </pre>
+      }
       <div className="relative">
         <video
           ref={videoRef}
@@ -290,7 +261,7 @@ export default function ImageDrawer() {
 
         <div className="absolute top-0 left-0">
           <canvas
-            className={isClipped ? 'hidden' : 'flex'}
+            className={isClipped ? 'opacity-30' : ''}
             ref={canvasRef}
             width={videoDimensions.width}
             height={videoDimensions.height}
@@ -298,7 +269,7 @@ export default function ImageDrawer() {
         </div>
         <div className="absolute top-0 left-0">
           <canvas
-
+            id={DRAWING_CANVAS_ID}
             className={isClipped ? 'pointer-events-none' : 'pointer-events-auto'}
             ref={drawingCanvasRef}
             width={videoDimensions.width}
