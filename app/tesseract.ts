@@ -18,8 +18,8 @@ export async function extractTextFromCanvas(canvasId: string) {
   const worker = await createWorker('eng');
 
   // Perform OCR on the image
-  // const { data: { text } } = await worker.recognize(image);
-  const { data: { text } } = await worker.recognize('/recipe.png' );
+  const { data: { text } } = await worker.recognize(image);
+  // const { data: { text } } = await worker.recognize('/recipe.png' );
   console.log('text', text);
 
   // Terminate the worker and revoke the Object URL
