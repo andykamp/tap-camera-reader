@@ -17,6 +17,12 @@ type Point = {
   y: number;
 };
 
+const constraints = {
+    video: {
+      facingMode: "environment" // Use the rear camera
+    }
+  };
+
 export default function ImageDrawer() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -29,7 +35,7 @@ export default function ImageDrawer() {
 
   const startCamera = async () => {
     if (!videoRef.current) return;
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    const stream = await navigator.mediaDevices.getUserMedia( constraints );
     videoRef.current.srcObject = stream;
   };
 
