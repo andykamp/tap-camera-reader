@@ -275,7 +275,7 @@ export default function ImageDrawer() {
 
   return (
     <div>
-      <div className="flex flex-row gap-1">
+      <div className="flex flex-row gap-1 overflow-y-hidden">
         <button onClick={startCamera}>Start Camera</button>
         <button onClick={takePicture}>Take Picture</button>
         <button onClick={resetCanvas}>Reset</button>
