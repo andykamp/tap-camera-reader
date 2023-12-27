@@ -26,11 +26,16 @@ const constraints = {
 
 const DRAWING_CANVAS_ID = 'drawing-canvas';
 
-export default function ImageDrawer() {
+type ImageDrawerProps = {
+  remount: () => void;
+}
+export default function ImageDrawer(props: ImageDrawerProps) {
+  const { remount } = props;
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawingCanvasRef = useRef<HTMLCanvasElement>(null);
 
+  const [isRecording, setIsRecording] = useState(false);
   const [videoDimensions, setVideoDimensions] = useState(DEFAULT_VIDEO_DIMENSIONS);
   const [polygonPoints, setPolygonPoints] = useState<Point[]>([]);
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
@@ -39,9 +44,11 @@ export default function ImageDrawer() {
   const [text, setText] = useState<string>();
 
   const startCamera = async () => {
+    setIsRecording(true);
     if (!videoRef.current) return;
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
     videoRef.current.srcObject = stream;
+    videoRef.current.controls = false;
   };
 
   const stopCamera = () => {
@@ -68,14 +75,18 @@ export default function ImageDrawer() {
 
   const takePicture = () => {
     resetDrawing();
-    if (!canvasRef.current || !videoRef.current) return;
+
+    setVideoDimensions(getVideoDimensions());
+    if (!canvasRef.current || !videoRef.current || !drawingCanvasRef.current) return;
     const context = canvasRef.current.getContext('2d');
     if (!context) return;
 
-    setVideoDimensions(getVideoDimensions());
-
     const screenshot = videoRef.current
     context.drawImage(screenshot, 0, 0, canvasRef.current.width, canvasRef.current.height);
+
+    const drawingContext = drawingCanvasRef.current.getContext('2d');
+    if (!drawingContext) return;
+    drawingContext.drawImage(screenshot, 0, 0, drawingCanvasRef.current.width, drawingCanvasRef.current.height);
 
     stopCamera();
   };
@@ -233,16 +244,16 @@ export default function ImageDrawer() {
   };
 
   const imageToText = async () => {
-    const text = await extractTextFromCanvas(DRAWING_CANVAS_ID)
-     setText(text)
+    const { data: { text } } = await extractTextFromCanvas(DRAWING_CANVAS_ID)
+    console.log('text', text);
+    setText(text)
   }
 
   return (
-    <div>
+    <div className="overlow-hidden w-full">
       <div className="flex flex-row gap-1 overflow-y-hidden">
-        <button onClick={startCamera}>Start Camera</button>
+        <button onClick={isRecording ? remount : startCamera}>{isRecording ? "RESET" : "Start camera"}</button>
         <button onClick={takePicture}>Take Picture</button>
-        <button onClick={resetCanvas}>Reset</button>
         <button onClick={() => download(DRAWING_CANVAS_ID)}>download</button>
         <button onClick={imageToText}>tess</button>
       </div>
@@ -251,29 +262,24 @@ export default function ImageDrawer() {
           {text}
         </pre>
       }
-      <div className="relative">
+      <div className="relative w-full">
         <video
           ref={videoRef}
           autoPlay
-          width={videoDimensions.width}
-          height={videoDimensions.height}
+          className="w-full"
         ></video>
 
-        <div className="absolute top-0 left-0">
+        <div className="absolute top-0 left-0 w-full">
           <canvas
-            className={isClipped ? 'opacity-30' : ''}
+            className={isClipped ? ' opacity-30' : ''}
             ref={canvasRef}
-            width={videoDimensions.width}
-            height={videoDimensions.height}
           ></canvas>
         </div>
         <div className="absolute top-0 left-0">
           <canvas
             id={DRAWING_CANVAS_ID}
-            className={isClipped ? 'pointer-events-none' : 'pointer-events-auto'}
+            className={isClipped ? 'pointer-events-none' : ' pointer-events-auto'}
             ref={drawingCanvasRef}
-            width={videoDimensions.width}
-            height={videoDimensions.height}
             onMouseDown={handleCanvasMouseDown}
             onMouseMove={handleCanvasMouseMove}
             onMouseUp={handleCanvasMouseUp}
