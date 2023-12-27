@@ -111,6 +111,7 @@ export default function ImageDrawer() {
         <video
           ref={videoRef}
           autoPlay
+          playsInline
           width={videoDimensions.width}
           height={videoDimensions.height}
         ></video>
