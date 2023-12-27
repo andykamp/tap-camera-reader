@@ -19,6 +19,7 @@ type Point = {
 };
 
 const constraints = {
+  audio: false,
   video: {
     facingMode: "environment" // Use the rear camera
   }
