@@ -266,6 +266,7 @@ export default function ImageDrawer(props: ImageDrawerProps) {
         <video
           ref={videoRef}
           autoPlay
+          playsInline
           className="w-full"
         ></video>
 
