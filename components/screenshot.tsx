@@ -157,7 +157,7 @@ export default function Screenshot(props: ScreenshotProps) {
           <div>translating..</div>
         }
         {text &&
-          <p className="w-full">{text}</p>
+          <pre className="w-full overflow-scroll">{text}</pre>
         }
       </div>
       <div className="flex justify-start items-center">
