@@ -53,9 +53,9 @@ export default function Screenshot(props: ScreenshotProps) {
   const startCamera = async (stream: MediaStream) => {
     console.log('starting camera',);
     setIsRecording(true);
-    if (!videoRef.current ){
+    if (!videoRef.current) {
       setError('Video ref not found');
-      return 
+      return
     }
     videoRef.current.srcObject = stream;
     videoRef.current.controls = false;
@@ -67,9 +67,9 @@ export default function Screenshot(props: ScreenshotProps) {
     });
     console.log('loaded');
 
-    if (!canvasRef.current){
+    if (!canvasRef.current) {
       setError('Canvas ref not found');
-      return 
+      return
     }
     // Set the canvas size to match the video dimensions
     canvasRef.current.width = videoRef.current.videoWidth;
@@ -89,14 +89,14 @@ export default function Screenshot(props: ScreenshotProps) {
   };
 
   const takePicture = () => {
-    if (!videoRef.current ){
+    if (!videoRef.current) {
       setError('Video ref not found');
-      return 
+      return
     }
 
-    if (!canvasRef.current){
+    if (!canvasRef.current) {
       setError('Canvas ref not found');
-      return 
+      return
     }
 
     const context = canvasRef.current.getContext('2d');
@@ -104,7 +104,7 @@ export default function Screenshot(props: ScreenshotProps) {
 
     const screenshot = videoRef.current
     context.drawImage(screenshot, 0, 0, canvasRef.current.width, canvasRef.current.height);
-setScreenshotTaken(true);
+    setScreenshotTaken(true);
     stopCamera();
   };
 
@@ -112,20 +112,18 @@ setScreenshotTaken(true);
     init();
   }, []);
 
-  if (error) return (
-    <div
-      className="text-red-500"
-    >
-      {error}
-    </div>
-  )
-
-  if (!isRecording) return (
-    <LoadingSpinner />
-  )
-
   return (
     <div className="w-full flex flex-col justify-start items-center">
+      {!isRecording &&
+        <LoadingSpinner />
+      }
+      {error &&
+        <div
+          className="text-red-500"
+        >
+          {error}
+        </div>
+      }
 
       <div className="flex flex-row gap-1 overflow-y-hidden">
         <Button onClick={remount}>Reset</Button>
