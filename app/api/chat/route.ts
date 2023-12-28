@@ -11,7 +11,7 @@ const openai = new OpenAI({
 });
 
 export async function POST(req: Request) {
-  console.log('heiho', );
+  console.log('heiho',);
   // Extract the `messages` from the body of the request
   const { image_url } = await req.json();
   console.log('image_url', image_url);
@@ -24,17 +24,17 @@ export async function POST(req: Request) {
   // });
 
   // @todo: add as stream 
-  const response = await openai.chat.completions.create({
+  const response1 = await openai.chat.completions.create({
     model: "gpt-4-vision-preview",
     messages: [
       {
         role: "user",
         content: [
-          { type: "text", text: "Read the text in the image. If the image contains text about ingredients, sum up the proteins and calories for each ingredient and tell me how many total calories and proteins you find in total. Take the quantity of each ingredient into account." },
+          { type: "text", text: "What does the text in the image say? Give me only the text u see and no other comment from you." },
           {
             type: "image_url",
             image_url: {
-              "url": image_url, 
+              "url": image_url,
               "detail": "low"
             },
           },
@@ -45,9 +45,25 @@ export async function POST(req: Request) {
     //n: 1, // number of alternatives to generate
   });
 
-  console.log(response);
-  console.log(response.choices[0]);
+  console.log('img to text', );
+  console.log(response1);
+  console.log(response1.choices[0]);
+
+  const recipe = response1.choices[0].message.content;
+  console.log('recipe',recipe);
+  const response2 = await openai.chat.completions.create({
+    messages: [{ "role": "system", "content": "You are a helpful nutrition assistant." },
+    { "role": "user", "content": "I am making a meal and have written down the recipe for you. I need help to estimate the total calory and protein in the meal. Take the following meal recipe, estimate each items macros (protein, calory) given the listen quantity, and sum it up so i know ish how many proteins and calories the meal contains: Here is the recipe: " + recipe },
+    ],
+    model: "gpt-3.5-turbo",
+    max_tokens: 640,
+  });
+
+  console.log('macros', );
+  console.log(response2);
+  console.dir(response2, { depth: null, color: true });
+  console.log('-----', );
 
   // Respond with the stream
-  return NextResponse.json(response)
+  return NextResponse.json(response2)
 }
