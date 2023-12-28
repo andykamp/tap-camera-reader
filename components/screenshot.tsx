@@ -152,6 +152,14 @@ export default function Screenshot(props: ScreenshotProps) {
         <Button onClick={imageToText}>ImgToText</Button>
       </div>
 
+      <div className="w-full break-words flex justify-start items-center">
+        {isTranslating &&
+          <div>translating..</div>
+        }
+        {text &&
+          <p className="w-full">{text}</p>
+        }
+      </div>
       <div className="flex justify-start items-center">
         <div className="relative ">
           <video
@@ -171,15 +179,6 @@ export default function Screenshot(props: ScreenshotProps) {
           </div>
 
         </div>
-      </div>
-
-      <div className="w-full break-words flex justify-start items-center">
-        {isTranslating &&
-          <div>translating..</div>
-        }
-        {text &&
-          <p className="w-full">{text}</p>
-        }
       </div>
 
     </div>
