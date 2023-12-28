@@ -2,6 +2,7 @@
 
 import React, { useRef, useState } from 'react';
 import { download, extractTextFromCanvas } from './tesseract';
+import { AiImageToText } from './openai-button';
 
 type VideoDimensions = {
   width: number,
@@ -245,9 +246,19 @@ export default function ImageDrawer(props: ImageDrawerProps) {
   };
 
   const imageToText = async () => {
-    const { data: { text } } = await extractTextFromCanvas(DRAWING_CANVAS_ID)
-    console.log('text', text);
-    setText(text)
+    // const { data: { text } } = await extractTextFromCanvas(DRAWING_CANVAS_ID)
+    // console.log('text', text);
+    const canvas = document.getElementById(DRAWING_CANVAS_ID) as HTMLCanvasElement;
+    const imageUrl = canvas.toDataURL();
+
+    try {
+      const text = await AiImageToText(imageUrl);
+      console.log('TEXT', text);
+      setText(text)
+    } catch (error) {
+      console.error('Fetch error:', error);
+    }
+
   }
 
   return (
