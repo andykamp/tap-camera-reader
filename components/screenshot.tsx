@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/spinner';
 import CroppableCanvas from '@/components/croppable-canvas';
+import { AiImageToText } from '@/lib/image-to-text.utils';
 
 const constraints = {
   audio: false,
@@ -26,6 +27,8 @@ export default function Screenshot(props: ScreenshotProps) {
   const [error, setError] = useState<string>();
   const [isRecording, setIsRecording] = useState(false);
   const [screenshotTaken, setScreenshotTaken] = useState(false);
+  const [text, setText] = useState<string | null>(null);
+  const [isTranslating, setIsTranslating] = useState(false);
 
   const init = async () => {
     try {
@@ -108,6 +111,24 @@ export default function Screenshot(props: ScreenshotProps) {
     stopCamera();
   };
 
+  const imageToText = async () => {
+    setText(null)
+    setIsTranslating(true)
+    // const { data: { text } } = await extractTextFromCanvas(DRAWING_CANVAS_ID)
+    // console.log('text', text);
+    const canvas = document.getElementById(SCREENSHOT_CANVAS_ID) as HTMLCanvasElement;
+    const imageUrl = canvas.toDataURL();
+
+    try {
+      const text = await AiImageToText(imageUrl);
+      console.log('TEXT', text);
+      setText(text)
+    } catch (error) {
+      console.error('Fetch error:', error);
+    }
+    setIsTranslating(false)
+  }
+
   useEffect(() => {
     init();
   }, []);
@@ -128,6 +149,7 @@ export default function Screenshot(props: ScreenshotProps) {
       <div className="flex flex-row gap-1 overflow-y-hidden">
         <Button onClick={remount}>Reset</Button>
         <Button onClick={takePicture}>Take Picture</Button>
+        <Button onClick={imageToText}>ImgToText</Button>
       </div>
 
       <div className="flex justify-start items-center">
@@ -149,6 +171,15 @@ export default function Screenshot(props: ScreenshotProps) {
           </div>
 
         </div>
+      </div>
+
+      <div className="w-full break-words flex justify-start items-center">
+        {isTranslating &&
+          <div>translating..</div>
+        }
+        {text &&
+          <p className="w-full">{text}</p>
+        }
       </div>
 
     </div>

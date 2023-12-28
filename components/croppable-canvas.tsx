@@ -220,7 +220,7 @@ export default function CroppableCanvas(props: CroppableCanvasProps) {
   return (
     <canvas
       // key={key}
-      // id={id}
+      id={id}
       className={isClipped ? 'pointer-events-none touch-none' : ' pointer-events-auto touch-none'}
       ref={ref}
       onMouseDown={handleCanvasMouseDown}
