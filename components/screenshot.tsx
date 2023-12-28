@@ -53,7 +53,10 @@ export default function Screenshot(props: ScreenshotProps) {
   const startCamera = async (stream: MediaStream) => {
     console.log('starting camera',);
     setIsRecording(true);
-    if (!videoRef.current || !canvasRef.current) return;
+    if (!videoRef.current || !canvasRef.current){
+      setError('Video or canvas ref not found');
+      return 
+    }
     videoRef.current.srcObject = stream;
     videoRef.current.controls = false;
 
