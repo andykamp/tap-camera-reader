@@ -30,7 +30,7 @@ export async function POST(req: Request) {
       {
         role: "user",
         content: [
-          { type: "text", text: "Write down the entire text you see on this image word for word" },
+          { type: "text", text: "Read the text in the image. If the image contains text about ingredients, sum up the proteins and calories for each ingredient and tell me how many total calories and proteins you find in total. Take the quantity of each ingredient into account." },
           {
             type: "image_url",
             image_url: {
