@@ -53,8 +53,8 @@ export default function Screenshot(props: ScreenshotProps) {
   const startCamera = async (stream: MediaStream) => {
     console.log('starting camera',);
     setIsRecording(true);
-    if (!videoRef.current || !canvasRef.current){
-      setError('Video or canvas ref not found');
+    if (!videoRef.current ){
+      setError('Video ref not found');
       return 
     }
     videoRef.current.srcObject = stream;
@@ -67,6 +67,10 @@ export default function Screenshot(props: ScreenshotProps) {
     });
     console.log('loaded');
 
+    if (!canvasRef.current){
+      setError('Canvas ref not found');
+      return 
+    }
     // Set the canvas size to match the video dimensions
     canvasRef.current.width = videoRef.current.videoWidth;
     canvasRef.current.height = videoRef.current.videoHeight;
