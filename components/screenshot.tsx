@@ -89,8 +89,16 @@ export default function Screenshot(props: ScreenshotProps) {
   };
 
   const takePicture = () => {
+    if (!videoRef.current ){
+      setError('Video ref not found');
+      return 
+    }
 
-    if (!canvasRef.current || !videoRef.current) return;
+    if (!canvasRef.current){
+      setError('Canvas ref not found');
+      return 
+    }
+
     const context = canvasRef.current.getContext('2d');
     if (!context) return;
 
